@@ -1,11 +1,9 @@
-import pool from '../config/db.postgres.js';
+import { createJobRepository, getJobByIdRepository } from '../repositories/jobs.repository.js';
 
 export async function createJobService(jobType) {
-    const result = await pool.query(
-        `INSERT INTO jobs (job_type) 
-        VALUES ($1) 
-        RETURNING *`,
-        [jobType]
-    )
-    return result.rows[0];
+    return await createJobRepository(jobType);
+}
+
+export async function getJobByIdService(id) {
+    return await getJobByIdRepository(id);
 }
