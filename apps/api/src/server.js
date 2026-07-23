@@ -1,8 +1,13 @@
 import express from "express";
 import pool from "./config/db.postgres.js";
 import jobsRouter from "./routes/jobs.routes.js";
+import dotenv from "dotenv";
+import { connectMongo} from "./config/db.mongo.js";
+
+dotenv.config();
 
 const app = express();
+await connectMongo();
 
 app.use(express.json());
 
@@ -18,5 +23,5 @@ app.get("/health", async (req, res) => {
 app.use("/jobs", jobsRouter);
 
 app.listen(3000, () => {
-  console.log("API running on port 3000");
+  console.log(`Server is running on http://localhost:3000`);
 });

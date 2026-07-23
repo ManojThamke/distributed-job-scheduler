@@ -2,7 +2,11 @@ import { createJobService, getJobByIdService } from "../services/jobs.service.js
 
 export async function createJob(req, res) {
   try {
-    const { jobType } = req.body;
+    const { 
+      jobType,
+      priority = "MEDIUM",
+      payload, 
+    } = req.body;
 
     if (!jobType) {
       return res.status(400).json({
@@ -10,7 +14,7 @@ export async function createJob(req, res) {
       });
     }
 
-    const job = await createJobService(jobType);
+    const job = await createJobService(jobType, priority, payload);
 
     return res.status(201).json(job);
   } catch (error) {
@@ -34,7 +38,7 @@ export async function getJobById(req, res) {
       });
     }
 
-    return res.json (job);
+    return res.json(job);
   } catch (error) {
     console.error(error);
 

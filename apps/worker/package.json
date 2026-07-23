@@ -2,7 +2,7 @@
   "name": "worker",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module"
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,6 +12,8 @@
   "description": "",
   "dependencies": {
     "bullmq": "^5.80.11",
+    "dotenv": "^17.4.2",
+    "mongoose": "^9.8.0",
     "pg": "^8.22.0"
   }
 }

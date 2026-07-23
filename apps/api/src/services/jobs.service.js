@@ -4,42 +4,55 @@ import {
 } from "../repositories/jobs.repository.js";
 
 import jobsQueue from "../queue/bullmq.js";
+import JobPayload from "../models/jobPayload.model.js";
 
-export async function createJobService(jobType) {
-  try {
-    console.log("========== CREATE JOB ==========");
+export async function createJobService(jobType, priority, payload) {
+  console.log("========== CREATE JOB ==========");
 
-    // Step 1: Save Job in PostgreSQL
-    const job = await createJobRepository(jobType);
-    console.log("✅ PostgreSQL Insert Successful");
-    console.log("Job ID:", job.id);
+  // Step 1: Save payload in MongoDB
+  const payloadDoc = await JobPayload.create({
+    jobType,
+    payload,
+  });
 
-    // Step 2: Add Job to BullMQ Queue
-    console.log("Adding job to BullMQ...");
+  console.log("✅ Payload saved to MongoDB");
+  console.log("Payload ID:", payloadDoc._id);
 
-    const queueJob = await jobsQueue.add(
-      "process-job",
-      {
-        jobId: job.id,
-        jobType: job.job_type,
+  // Step 2: Save metadata in PostgreSQL
+  const job = await createJobRepository(
+    jobType,
+    priority,
+    payloadDoc._id.toString()
+  );
+
+  console.log("✅ PostgreSQL Insert Successful");
+  console.log("Job ID:", job.id);
+
+  // Step 3: Push job to BullMQ
+  const queueJob = await jobsQueue.add(
+    "process-job",
+    {
+      jobId: job.id,
+    },
+    {
+      attempts: 3,
+
+      backoff: {
+        type: "exponential",
+        delay: 3000,
       },
-      {
-        removeOnComplete: true,
-        removeOnFail: false,
-      }
-    );
 
-    console.log("✅ Added to BullMQ");
-    console.log("BullMQ Job ID:", queueJob.id);
+      removeOnComplete: true,
+      removeOnFail: false,
+    }
+  );
 
-    console.log("========== DONE ==========");
+  console.log("✅ Added to BullMQ");
+  console.log("BullMQ Job ID:", queueJob.id);
 
-    return job;
-  } catch (error) {
-    console.error("❌ Error in createJobService:");
-    console.error(error);
-    throw error;
-  }
+  console.log("========== DONE ==========");
+
+  return job;
 }
 
 export async function getJobByIdService(id) {
